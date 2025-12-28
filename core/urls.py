@@ -18,7 +18,10 @@ from django.contrib import admin
 from django.urls import include
 from django.urls import path
 
+from api.views.health_views import health_check
+
 urlpatterns = [
+    path('', health_check, name='health_check'),
     path('api/', include('api.urls')),
     path('admin/', admin.site.urls),
 ]
