@@ -100,30 +100,33 @@ if USE_SQLITE:
     }
 else:
     # Supabase PostgreSQL via Connection Pooling
-    db_host = config("DB_HOST")
-    
-    # FIX: Resolve hostname to IPv4 to avoid IPv6 timeouts (saves ~15s)
-    import socket
     try:
-        # Force IPv4 resolution
-        db_host = socket.gethostbyname(db_host)
-        print(f"Resolved DB_HOST to {db_host} (IPv4) to avoid timeouts")
-    except Exception as e:
-        print(f"Could not resolve DB_HOST {db_host}: {e}")
+        db_host = config("DB_HOST", default=None)
+        if db_host:
+            # FIX: Resolve hostname to IPv4 to avoid IPv6 timeouts (saves ~15s)
+            import socket
+            try:
+                db_host = socket.gethostbyname(db_host)
+                print(f"Resolved DB_HOST to {db_host} (IPv4)")
+            except Exception as e:
+                print(f"Could not resolve DB_HOST {db_host}: {e}")
 
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": config("DB_NAME"),
-            "USER": config("DB_USER"),
-            "PASSWORD": config("DB_PASSWORD"),
-            "HOST": db_host,
-            "PORT": config("DB_PORT", cast=int),
-            "OPTIONS": {
-                "sslmode": config("DB_SSLMODE", default="require"),
-            },
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": config("DB_NAME", default=""),
+                "USER": config("DB_USER", default=""),
+                "PASSWORD": config("DB_PASSWORD", default=""),
+                "HOST": db_host or "",
+                "PORT": config("DB_PORT", cast=int, default=5432),
+                "OPTIONS": {
+                    "sslmode": config("DB_SSLMODE", default="require"),
+                },
+            }
         }
-    }
+    except Exception as e:
+        print(f"Database configuration error: {e}")
+        DATABASES = {}
 
 # Password Validation
 AUTH_PASSWORD_VALIDATORS = [
