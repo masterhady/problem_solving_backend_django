@@ -19,13 +19,16 @@ def db_status_simple(request):
             connection_ok = False
             connection_error = str(e)
             
+        import os
         return JsonResponse({
             "db_engine": str(db_config.get('ENGINE')),
-            "db_host": str(db_config.get('HOST')),
+            "db_host_config": str(db_config.get('HOST')),
             "db_name": str(db_config.get('NAME')),
             "connection_ok": str(connection_ok),
             "connection_error": str(connection_error),
-            "use_sqlite": str(getattr(settings, 'USE_SQLITE', 'Not Set')),
+            "env_db_host_present": str('DB_HOST' in os.environ),
+            "env_use_sqlite": str(os.environ.get('USE_SQLITE')),
+            "use_sqlite_config": str(getattr(settings, 'USE_SQLITE', 'Not Set')),
             "debug_mode": str(settings.DEBUG)
         })
     except Exception as e:
