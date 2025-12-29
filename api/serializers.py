@@ -35,6 +35,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        data = super().validate(attrs)
-        data["user"] = UserSerializer(self.user).data
-        return data 
+        try:
+            data = super().validate(attrs)
+            data["user"] = UserSerializer(self.user).data
+            return data
+        except Exception as e:
+            # If it's already a ValidationError, re-raise it
+            if isinstance(e, serializers.ValidationError):
+                raise e
+            # Otherwise, log it and raise a generic error to avoid 500
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Login validation error: {str(e)}", exc_info=True)
+            raise serializers.ValidationError({"detail": f"An error occurred during login: {str(e)}"})
