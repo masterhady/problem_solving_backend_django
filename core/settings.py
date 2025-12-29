@@ -95,9 +95,39 @@ PASSWORD_HASHERS = [
 # PBKDF2PasswordHasher.iterations = 1
 
 # Database
+DB_HOST = config("DB_HOST", default=None)
 USE_SQLITE = config("USE_SQLITE", cast=bool, default=False)
-print(f"DEBUG: USE_SQLITE is {USE_SQLITE}")
-if USE_SQLITE:
+
+# Force Postgres if DB_HOST is provided, even if USE_SQLITE is True
+if DB_HOST and not USE_SQLITE:
+    print("DEBUG: Using Postgres (DB_HOST detected)")
+    try:
+        db_host = DB_HOST
+        # FIX: Resolve hostname to IPv4 to avoid IPv6 timeouts (saves ~15s)
+        import socket
+        try:
+            db_host = socket.gethostbyname(db_host)
+            print(f"Resolved DB_HOST to {db_host} (IPv4)")
+        except Exception as e:
+            print(f"Could not resolve DB_HOST {db_host}: {e}")
+
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": config("DB_NAME", default=""),
+                "USER": config("DB_USER", default=""),
+                "PASSWORD": config("DB_PASSWORD", default=""),
+                "HOST": db_host,
+                "PORT": config("DB_PORT", cast=int, default=5432),
+                "OPTIONS": {
+                    "sslmode": config("DB_SSLMODE", default="require"),
+                },
+            }
+        }
+    except Exception as e:
+        print(f"Database configuration error: {e}")
+        DATABASES = {}
+elif USE_SQLITE or not DB_HOST:
     print("DEBUG: Using SQLite")
     DATABASES = {
         "default": {
@@ -106,43 +136,8 @@ if USE_SQLITE:
         }
     }
 else:
-    # Supabase PostgreSQL via Connection Pooling
-    print("DEBUG: Using Postgres")
-    try:
-        db_host = config("DB_HOST", default=None)
-        print(f"DEBUG: DB_HOST from config: {db_host}")
-        if db_host:
-            # FIX: Resolve hostname to IPv4 to avoid IPv6 timeouts (saves ~15s)
-            import socket
-            try:
-                db_host = socket.gethostbyname(db_host)
-                print(f"Resolved DB_HOST to {db_host} (IPv4)")
-            except Exception as e:
-                print(f"Could not resolve DB_HOST {db_host}: {e}")
-
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": config("DB_NAME", default=""),
-                "USER": config("DB_USER", default=""),
-                "PASSWORD": config("DB_PASSWORD", default=""),
-                "HOST": db_host or "",
-                "PORT": config("DB_PORT", cast=int, default=5432),
-                "OPTIONS": {
-                    "sslmode": config("DB_SSLMODE", default="require"),
-                },
-            }
-        }
-        print(f"DEBUG: DATABASES configured for engine: {DATABASES['default']['ENGINE']}")
-    except Exception as e:
-        print(f"Database configuration error: {e}")
-        # Fallback to a dummy config that will fail loudly but safely
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": "error_db",
-            }
-        }
+    # This part is now redundant but kept for safety
+    DATABASES = {}
 
 # Password Validation
 AUTH_PASSWORD_VALIDATORS = [
