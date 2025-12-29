@@ -22,7 +22,7 @@ def db_status_simple(request):
         return JsonResponse({
             "db_engine": db_config.get('ENGINE'),
             "db_host": db_config.get('HOST'),
-            "db_name": db_config.get('NAME'),
+            "db_name": str(db_config.get('NAME')),
             "connection_ok": connection_ok,
             "connection_error": connection_error,
             "use_sqlite": getattr(settings, 'USE_SQLITE', 'Not Set'),
