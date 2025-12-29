@@ -15,6 +15,7 @@ class DbStatusView(APIView):
             "user": settings.DATABASES['default'].get('USER'),
         }
         
+        connection_error = None
         try:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT 1")
