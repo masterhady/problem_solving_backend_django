@@ -9,6 +9,7 @@ from .views.employee_progress_views import (
     EmployeeViewSet, EmployeeProgressView, KPIDashboardView, SyncEmployeeView
 )
 from .views.employee_goal_views import EmployeeGoalViewSet
+from .views.diagnostic_views import DbStatusView
 
 router = DefaultRouter()
 router.register(r'coding-profiles', CodingProfileViewSet, basename='coding-profiles')
@@ -34,6 +35,8 @@ urlpatterns = [
     path("company/employees/<uuid:employee_id>/goals/", EmployeeGoalViewSet.as_view(), name="company_employee_goals"),
     path("company/goals/", EmployeeGoalViewSet.as_view(), name="company_goals_all"),
     path("company/goals/<uuid:goal_id>/", EmployeeGoalViewSet.as_view(), name="company_goal_detail"),
+    
+    path("db-status/", DbStatusView.as_view(), name="db_status"),
     
     path("", include(router.urls)),
 ]
