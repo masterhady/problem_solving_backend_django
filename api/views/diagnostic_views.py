@@ -20,13 +20,13 @@ def db_status_simple(request):
             connection_error = str(e)
             
         return JsonResponse({
-            "db_engine": db_config.get('ENGINE'),
-            "db_host": db_config.get('HOST'),
+            "db_engine": str(db_config.get('ENGINE')),
+            "db_host": str(db_config.get('HOST')),
             "db_name": str(db_config.get('NAME')),
-            "connection_ok": connection_ok,
-            "connection_error": connection_error,
-            "use_sqlite": getattr(settings, 'USE_SQLITE', 'Not Set'),
-            "debug_mode": settings.DEBUG
+            "connection_ok": str(connection_ok),
+            "connection_error": str(connection_error),
+            "use_sqlite": str(getattr(settings, 'USE_SQLITE', 'Not Set')),
+            "debug_mode": str(settings.DEBUG)
         })
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
