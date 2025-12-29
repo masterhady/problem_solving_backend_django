@@ -98,8 +98,8 @@ PASSWORD_HASHERS = [
 DB_HOST = config("DB_HOST", default=None)
 USE_SQLITE = config("USE_SQLITE", cast=bool, default=False)
 
-# Force Postgres if DB_HOST is provided, even if USE_SQLITE is True
-if DB_HOST and not USE_SQLITE:
+# Force Postgres if DB_HOST is provided
+if DB_HOST:
     print("DEBUG: Using Postgres (DB_HOST detected)")
     try:
         db_host = DB_HOST
@@ -127,7 +127,7 @@ if DB_HOST and not USE_SQLITE:
     except Exception as e:
         print(f"Database configuration error: {e}")
         DATABASES = {}
-elif USE_SQLITE or not DB_HOST:
+else:
     print("DEBUG: Using SQLite")
     DATABASES = {
         "default": {
@@ -135,9 +135,6 @@ elif USE_SQLITE or not DB_HOST:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-else:
-    # This part is now redundant but kept for safety
-    DATABASES = {}
 
 # Password Validation
 AUTH_PASSWORD_VALIDATORS = [
