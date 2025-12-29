@@ -96,7 +96,9 @@ PASSWORD_HASHERS = [
 
 # Database
 USE_SQLITE = config("USE_SQLITE", cast=bool, default=False)
+print(f"DEBUG: USE_SQLITE is {USE_SQLITE}")
 if USE_SQLITE:
+    print("DEBUG: Using SQLite")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
