@@ -91,8 +91,8 @@ PASSWORD_HASHERS = [
 ]
 
 # Reduce iterations for PBKDF2 to 1 (default is 600,000+)
-from django.contrib.auth.hashers import PBKDF2PasswordHasher
-PBKDF2PasswordHasher.iterations = 1
+# from django.contrib.auth.hashers import PBKDF2PasswordHasher
+# PBKDF2PasswordHasher.iterations = 1
 
 # Database
 USE_SQLITE = config("USE_SQLITE", cast=bool, default=False)
