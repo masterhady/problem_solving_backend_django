@@ -107,8 +107,10 @@ if USE_SQLITE:
     }
 else:
     # Supabase PostgreSQL via Connection Pooling
+    print("DEBUG: Using Postgres")
     try:
         db_host = config("DB_HOST", default=None)
+        print(f"DEBUG: DB_HOST from config: {db_host}")
         if db_host:
             # FIX: Resolve hostname to IPv4 to avoid IPv6 timeouts (saves ~15s)
             import socket
@@ -131,9 +133,16 @@ else:
                 },
             }
         }
+        print(f"DEBUG: DATABASES configured for engine: {DATABASES['default']['ENGINE']}")
     except Exception as e:
         print(f"Database configuration error: {e}")
-        DATABASES = {}
+        # Fallback to a dummy config that will fail loudly but safely
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": "error_db",
+            }
+        }
 
 # Password Validation
 AUTH_PASSWORD_VALIDATORS = [
