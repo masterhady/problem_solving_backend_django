@@ -10,8 +10,8 @@ def generate_text_fireworks(prompt, system_prompt="You are a helpful AI assistan
     if not FIREWORKS_API_KEY:
         return "Error: Fireworks API key not configured."
     
-    # Use a default model if not configured specifically for chat
-    model = "accounts/fireworks/models/llama-v3p1-70b-instruct"
+    # Use a valid model from Fireworks
+    model = "accounts/fireworks/models/llama-v3p3-70b-instruct"
     
     url = f"{FIREWORKS_BASE_URL}/chat/completions"
     headers = {

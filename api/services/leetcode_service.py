@@ -498,44 +498,64 @@ class LeetCodeService:
             # Generate personalized recommendations
             recommendations = []
             
-            # Difficulty Coverage
-            if comp_difficulty < 40:
-                recommendations.append("Solve more medium and hard problems to improve difficulty coverage.")
-            elif comp_difficulty < 70:
-                recommendations.append("Focus on hard problems to reach advanced difficulty coverage.")
-            
-            # Solution Quality
-            if comp_quality < 50:
-                recommendations.append("Improve acceptance rate by reviewing solutions before submission and testing edge cases.")
-            
-            # Consistency
-            if comp_consistency < 40:
-                recommendations.append("Build longer active streaks by solving problems regularly (aim for daily practice).")
-            elif current_streak == 0 and max_streak > 0:
-                recommendations.append("Resume your practice streak to maintain consistency.")
-            
-            # Volume/Ranking
-            if comp_ranking < 50:
-                recommendations.append("Increase total problems solved to improve your global ranking.")
-            
-            # Community Engagement
-            if comp_engagement < 30:
-                recommendations.append("Engage with the community by sharing solutions and participating in discussions.")
-            
-            # Limit to top 3 most impactful recommendations
-            # Prioritize based on component weights
-            weighted_gaps = []
-            if comp_difficulty < 70:
-                weighted_gaps.append(('difficulty', (100 - comp_difficulty) * w['difficulty']))
-            if comp_quality < 70:
-                weighted_gaps.append(('quality', (100 - comp_quality) * w['quality']))
-            if comp_consistency < 70:
-                weighted_gaps.append(('consistency', (100 - comp_consistency) * w['consistency']))
-            if comp_ranking < 70:
-                weighted_gaps.append(('ranking', (100 - comp_ranking) * w['ranking']))
-            
-            weighted_gaps.sort(key=lambda x: x[1], reverse=True)
-            recommendations = recommendations[:3]  # Limit to 3
+            try:
+                from api.services.coding_profile_analysis_service import generate_text_fireworks
+                import json
+                
+                ai_prompt = f"""
+                As an expert technical coach, provide 3 specific, actionable recommendations for a {target_role} software engineer based on these LeetCode stats:
+                - Total Solved: {stats.get('total_solved')}
+                - Easy: {easy}, Medium: {medium}, Hard: {hard}
+                - Weighted Acceptance Rate: {weighted_acceptance_rate}%
+                - Max Streak: {max_streak} days
+                - Community Reputation: {reputation}
+                
+                The recommendations should be highly specific (e.g., mention specific LeetCode study plans, problem patterns, or practice habits).
+                Return ONLY a JSON list of 3 strings. Example: ["Recommendation 1", "Recommendation 2", "Recommendation 3"]
+                """
+                
+                ai_response = generate_text_fireworks(ai_prompt, system_prompt="You are a helpful technical coaching assistant that only speaks JSON.")
+                
+                if not ai_response or "Error" in ai_response:
+                    raise ValueError(f"AI service error: {ai_response}")
+                if "```json" in ai_response:
+                    ai_response = ai_response.split("```json")[1].split("```")[0].strip()
+                elif "```" in ai_response:
+                    ai_response = ai_response.split("```")[1].split("```")[0].strip()
+                
+                recommendations = json.loads(ai_response)
+                
+                if not isinstance(recommendations, list) or len(recommendations) == 0:
+                    raise ValueError("Invalid AI response format")
+                
+                # Ensure we only have strings and limit to 3
+                recommendations = [str(r) for r in recommendations[:3]]
+                
+            except Exception as e:
+                logger.warning(f"AI recommendation generation failed, falling back to rules: {str(e)}")
+                # Fallback to rule-based recommendations
+                if comp_difficulty < 40:
+                    recommendations.append("Start with the 'LeetCode 75' study plan to build a strong foundation in Medium problems.")
+                elif comp_difficulty < 70:
+                    recommendations.append("Solve 2-3 Hard problems weekly from the 'Top Interview 150' list to improve advanced coverage.")
+                
+                if comp_quality < 50:
+                    recommendations.append("Practice 'Dry Running' your code with edge cases before submitting to improve acceptance rate.")
+                elif comp_quality < 80:
+                    recommendations.append("Focus on optimizing time/space complexity; aim for solutions that beat 80% of users.")
+                
+                if comp_consistency < 40:
+                    recommendations.append("Participate in the 'Daily LeetCoding Challenge' to build a consistent practice habit.")
+                elif current_streak == 0 and max_streak > 0:
+                    recommendations.append("Resume your daily streak today to maintain your problem-solving momentum.")
+                
+                if comp_ranking < 50:
+                    recommendations.append("Set a goal to solve 5 new problems per week to steadily improve your global ranking.")
+                
+                if comp_engagement < 30:
+                    recommendations.append("Read and upvote high-quality solutions in the 'Discuss' tab to learn different approaches.")
+                
+                recommendations = recommendations[:3]
             
             score_breakdown = {
                 "total": unified_score,
